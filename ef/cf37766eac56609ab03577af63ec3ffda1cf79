@@ -1,0 +1,87 @@
+components/ai-assist/cards/ExecutingCard.tsx
+  6a2c02801871c556 1-12
+lib/data.ts
+  6a2c02801871c556 1-277
+components/FanPageContext.tsx
+  6a2c02801871c556 1-12
+components/order/OrderPage.tsx
+  6a2c02801871c556 1-314
+components/ai-assist/cards/TargetGamePicker.tsx
+  6a2c02801871c556 1-65
+app/notifications/page.tsx
+  6a2c02801871c556 1-30
+components/ai-assist/ChatPanel.tsx
+  6a2c02801871c556 1-197
+components/ai-assist/cards/PreferenceChips.tsx
+  6a2c02801871c556 1-55
+components/ai-assist/cards/SeatBlockOptionsCards.tsx
+  6a2c02801871c556 1-103
+components/Sidebar.tsx
+  6a2c02801871c556 1-192
+components/ai-assist/MessageList.tsx
+  6a2c02801871c556 1-82
+components/NotificationItem.tsx
+  6a2c02801871c556 1-214
+components/ai-assist/ChatButton.tsx
+  6a2c02801871c556 1-24
+app/layout.tsx
+  6a2c02801871c556 3,6-7,10,12-15
+app/globals.css
+  6a2c02801871c556 3-22,25-26,29-34,37-38,40-44
+components/Header.tsx
+  6a2c02801871c556 1-43
+components/ai-assist/cards/GameSelectionCards.tsx
+  6a2c02801871c556 1-35
+components/ai-assist/cards/ApprovalCard.tsx
+  6a2c02801871c556 1-195
+app/page.tsx
+  6a2c02801871c556 1,4
+lib/store.ts
+  6a2c02801871c556 1-186
+components/NotificationWatcher.tsx
+  6a2c02801871c556 1-41
+app/orders/[orderId]/page.tsx
+  6a2c02801871c556 1-10
+components/ai-assist/cards/ReconciliationOptions.tsx
+  6a2c02801871c556 1-79
+lib/utils.ts
+  6a2c02801871c556 1-14
+lib/flows.ts
+  6a2c02801871c556 1-384
+components/ai-assist/cards/SeatSelectionGrid.tsx
+  6a2c02801871c556 1-89
+package.json
+  6a2c02801871c556 11-14,17-19
+components/ai-assist/cards/RequestSummaryCard.tsx
+  6a2c02801871c556 1-107
+app/orders/page.tsx
+  6a2c02801871c556 1-34
+components/AppShell.tsx
+  6a2c02801871c556 1-24
+components/ToastHost.tsx
+  6a2c02801871c556 1-71
+app/fans/[fanId]/page.tsx
+  6a2c02801871c556 1-51
+components/ai-assist/cards/CompletedCard.tsx
+  6a2c02801871c556 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "efcf37766eac56609ab03577af63ec3ffda1cf79",
+  "prompts": {
+    "6a2c02801871c556": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "31a7d299-36e8-4403-9d1a-95dc2ff7c6fc",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Andy Schaefer",
+      "messages": [],
+      "total_additions": 3022,
+      "total_deletions": 104,
+      "accepted_lines": 3021,
+      "overriden_lines": 0
+    }
+  }
+}
