@@ -1,0 +1,61 @@
+components/ai-assist/cards/EditMenuCard.tsx
+  dac53d321a87430e 1-41
+lib/flows.ts
+  dac53d321a87430e 3-4,208-221,224,229,231-232,235-247,250,252,254-273,277-460,472,475-477,484-531,534,538-544,546-591,596,601,606-623,626,628,633,638,643-668,670-697,699-702,707,712,717-745,763-773,775-787,794,797-798,800,803-903
+components/NotificationWatcher.tsx
+  dac53d321a87430e 4,9,11
+components/ai-assist/cards/GameSelectionCards.tsx
+  dac53d321a87430e 5,7-11,16-18,29-33
+components/ai-assist/cards/RequestSummaryCard.tsx
+  dac53d321a87430e 3,12-13,22,24,31,34-48,56-59,67,94-107,115-129,131-132,138-162
+components/NotificationItem.tsx
+  dac53d321a87430e 9,11,13,18,20,23,25,67-80,83-111,113,135-136,138,141-142,144,149,152-164,169-174,179,209-222,225,228-237,240,243
+components/ai-assist/cards/PreferenceChips.tsx
+  dac53d321a87430e 5,7,13-16,22-37,52
+components/Header.tsx
+  dac53d321a87430e 3,15-16
+components/ai-assist/cards/ReconciliationOptions.tsx
+  dac53d321a87430e 5,8-12,16-18,21-25,36,42,52,58
+app/notifications/page.tsx
+  dac53d321a87430e 3,7
+lib/store.ts
+  dac53d321a87430e 26,44-46,48-50,52,60,64-66,86-91,94,113-117,122,132-155,157,161-162,164-167,169-174,188-190,202-205
+components/Sidebar.tsx
+  dac53d321a87430e 22,30
+components/ai-assist/cards/ApprovalCard.tsx
+  dac53d321a87430e 3,25
+components/ai-assist/ChatPanel.tsx
+  dac53d321a87430e 6,13,15,23,29-30,34-41,83-89,91-97,167,173-190,192-210
+components/ai-assist/cards/SeatSelectionGrid.tsx
+  dac53d321a87430e 17-23,38
+components/ai-assist/cards/TargetGamePicker.tsx
+  dac53d321a87430e 6,9,15-18,54-58
+components/ai-assist/MessageList.tsx
+  dac53d321a87430e 14,61,65,67,69,76-77
+components/ToastHost.tsx
+  dac53d321a87430e 4-5,40,42,50-77,79-93,95-104
+lib/utils.ts
+  dac53d321a87430e 15-25
+components/ai-assist/cards/SeatBlockOptionsCards.tsx
+  dac53d321a87430e 6,8-12,16-18,45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "b7722b0942d10aab3a814667262827ff676c3e1b",
+  "prompts": {
+    "dac53d321a87430e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85abc469-2145-4d14-b71f-bbc8616621a8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Andy Schaefer",
+      "messages": [],
+      "total_additions": 1207,
+      "total_deletions": 310,
+      "accepted_lines": 1142,
+      "overriden_lines": 0
+    }
+  }
+}
