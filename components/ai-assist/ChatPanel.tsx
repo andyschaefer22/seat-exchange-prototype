@@ -3,14 +3,16 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, useRoleStore } from "@/lib/store";
 import { FANS_BY_ID, ORDERS_BY_ID } from "@/lib/data";
 import {
   adminGreet,
   salesGreet,
   startAdminExchange,
   startSalesIntake,
+  salesProvideFan,
   salesAfterNote,
+  salesSkipNote,
   salesAfterPreferences,
 } from "@/lib/flows";
 import { MessageList } from "./MessageList";
@@ -18,14 +20,24 @@ import { MessageList } from "./MessageList";
 export function ChatPanel() {
   const open = useStore((s) => s.chatOpen);
   const closeChat = useStore((s) => s.closeChat);
-  const role = useStore((s) => s.currentRole);
+  const role = useRoleStore((s) => s.currentRole);
   const contextPage = useStore((s) => s.contextPage);
   const conversation = useStore((s) => s.conversation);
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
   const flow = useStore((s) => s.flow);
+  const draftInput = useStore((s) => s.draftInput);
+  const setDraftInput = useStore((s) => s.setDraftInput);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Consume a one-shot pre-fill (e.g. when editing the note/fan from the summary).
+  useEffect(() => {
+    if (draftInput) {
+      setInput(draftInput);
+      setDraftInput("");
+    }
+  }, [draftInput, setDraftInput]);
 
   // Greet on open if empty
   useEffect(() => {
@@ -68,12 +80,21 @@ export function ChatPanel() {
     if (!text) return;
     setInput("");
     if (role === "sales") {
-      if (flow.step === "sales-note") {
-        salesAfterNote({ note: text, appendMessage, setFlow });
-      } else if (flow.step === "sales-preferences") {
-        salesAfterPreferences({ preferences: text, appendMessage, setFlow });
-      } else {
+      if (flow.step === "sales-need-fan") {
+        salesProvideFan({ userText: text, flow, appendMessage, setFlow });
+      } else if (flow.step === "sales-note") {
+        salesAfterNote({ note: text, flow, appendMessage, setFlow });
+      } else if (flow.step === "sales-preferences" || flow.step === "sales-preferences-specific") {
+        salesAfterPreferences({ preferences: text, flow, appendMessage, setFlow });
+      } else if (flow.step === "idle" || flow.step === "done") {
         startSalesIntake({ userText: text, appendMessage, setFlow });
+      } else {
+        // A card step (source/target game, seats, summary) expects an on-card action.
+        appendMessage({ role: "user", text });
+        appendMessage({
+          role: "assistant",
+          text: "Please use the options above to continue.",
+        });
       }
     } else {
       appendMessage({ role: "user", text });
@@ -143,41 +164,50 @@ export function ChatPanel() {
                   <QuickAction onClick={() => {}} label="Void entitlement" />
                 </>
               ) : (
-                <>
-                  <QuickAction onClick={() => onQuickAction("Request seat exchange")} label="Request seat exchange" />
-                  <QuickAction onClick={() => {}} label="Request other action" />
-                </>
+                <QuickAction onClick={() => onQuickAction("Request seat exchange")} label="Exchange Seats" />
               )}
             </div>
           )}
 
           {/* Input */}
-          <div className="border-t border-[color:var(--color-border)] p-3 flex items-end gap-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  onSend();
+          <div className="border-t border-[color:var(--color-border)] p-3">
+            <div className="flex items-end gap-2">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    onSend();
+                  }
+                }}
+                rows={1}
+                placeholder={
+                  role !== "sales"
+                    ? "Ask anything..."
+                    : flow.step === "sales-preferences-specific"
+                      ? "e.g., Section 101, Row 1, Seats 1-2"
+                      : "Describe what you need (e.g., \"Andy wants to exchange Cavs seats for Hawks\")"
                 }
-              }}
-              rows={1}
-              placeholder={
-                role === "sales"
-                  ? "Describe what you need (e.g., \"Andy wants to exchange Cavs seats for Hawks\")"
-                  : "Ask anything..."
-              }
-              className="flex-1 resize-none border border-[color:var(--color-border)] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[color:var(--color-primary)]"
-            />
-            <button
-              onClick={onSend}
-              disabled={!input.trim()}
-              className="w-9 h-9 rounded-md bg-[color:var(--color-primary)] text-white grid place-items-center hover:bg-[color:var(--color-primary-dark)] disabled:opacity-40"
-              aria-label="Send"
-            >
-              <Send size={14} />
-            </button>
+                className="flex-1 resize-none border border-[color:var(--color-border)] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[color:var(--color-primary)]"
+              />
+              <button
+                onClick={onSend}
+                disabled={!input.trim()}
+                className="w-9 h-9 rounded-md bg-[color:var(--color-primary)] text-white grid place-items-center hover:bg-[color:var(--color-primary-dark)] disabled:opacity-40"
+                aria-label="Send"
+              >
+                <Send size={14} />
+              </button>
+            </div>
+            {role === "sales" && flow.step === "sales-note" && (
+              <button
+                onClick={() => salesSkipNote({ flow, appendMessage, setFlow })}
+                className="mt-2 text-[12px] text-[color:var(--color-base-shade-300)] hover:text-[color:var(--color-base-text)] underline"
+              >
+                Skip
+              </button>
+            )}
           </div>
         </motion.div>
       )}

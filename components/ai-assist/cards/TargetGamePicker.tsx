@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { UPCOMING_EVENTS, formatEventDateTime } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { pickTargetGame } from "@/lib/flows";
+import { pickTargetGame, salesPickTargetGame } from "@/lib/flows";
 import { ChevronDown } from "lucide-react";
 
-export function TargetGamePicker() {
+export function TargetGamePicker({ data }: { data?: { salesMode?: boolean } }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const flow = useStore((s) => s.flow);
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
-  const disabled = flow.step !== "choose-target-game";
+  const salesMode = data?.salesMode ?? false;
+  const disabled = salesMode
+    ? flow.step !== "sales-target-game"
+    : flow.step !== "choose-target-game";
 
   const filtered = UPCOMING_EVENTS.filter(
     (e) =>
@@ -48,7 +51,11 @@ export function TargetGamePicker() {
               key={ev.id}
               onClick={() => {
                 setOpen(false);
-                pickTargetGame({ targetEventId: ev.id, appendMessage, setFlow });
+                if (salesMode) {
+                  salesPickTargetGame({ targetEventId: ev.id, flow, appendMessage, setFlow });
+                } else {
+                  pickTargetGame({ targetEventId: ev.id, appendMessage, setFlow });
+                }
               }}
               className="w-full text-left px-3 py-2 text-[12.5px] hover:bg-[#f4f6f9]"
             >

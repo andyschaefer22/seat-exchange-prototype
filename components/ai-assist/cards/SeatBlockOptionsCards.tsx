@@ -3,13 +3,19 @@
 import { getBlockOptions, ORDERS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { cn, formatCurrency } from "@/lib/utils";
-import { pickBlock } from "@/lib/flows";
+import { pickBlock, salesPickBlock } from "@/lib/flows";
 
-export function SeatBlockOptionsCards({ data }: { data: { targetEventId: string } }) {
+export function SeatBlockOptionsCards({
+  data,
+}: {
+  data: { targetEventId: string; salesMode?: boolean };
+}) {
   const flow = useStore((s) => s.flow);
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
-  const disabled = flow.step !== "choose-block";
+  const disabled = data.salesMode
+    ? flow.step !== "sales-block"
+    : flow.step !== "choose-block";
 
   const fanId = flow.fanId;
   const order = fanId ? ORDERS.find((o) => o.fanId === fanId) : undefined;
@@ -36,12 +42,9 @@ export function SeatBlockOptionsCards({ data }: { data: { targetEventId: string 
             key={b.id}
             disabled={disabled}
             onClick={() =>
-              pickBlock({
-                blockId: b.id,
-                priceDelta: delta,
-                appendMessage,
-                setFlow,
-              })
+              data.salesMode
+                ? salesPickBlock({ blockId: b.id, flow, appendMessage, setFlow })
+                : pickBlock({ blockId: b.id, priceDelta: delta, appendMessage, setFlow })
             }
             className="text-left border border-[color:var(--color-border)] rounded-md p-3 hover:border-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)]/5 disabled:opacity-60 disabled:cursor-not-allowed flex gap-3 items-center"
           >

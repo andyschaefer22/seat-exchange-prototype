@@ -2,30 +2,39 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { salesAfterPreferences } from "@/lib/flows";
+import { salesAfterPreferences, salesAskSpecificSeats } from "@/lib/flows";
 
-const CHIPS = ["Same price", "Closer to court", "Cheaper", "No preference"];
+const CLOSEST_COMPARABLE = "Closest comparable location & price";
 
 export function PreferenceChips() {
   const flow = useStore((s) => s.flow);
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
-  const [custom, setCustom] = useState("");
+  // Pre-fill the custom field with the prior preference when editing.
+  const [custom, setCustom] = useState(() =>
+    flow.editing && flow.preferences !== CLOSEST_COMPARABLE ? (flow.preferences ?? "") : "",
+  );
   const disabled = flow.step !== "sales-preferences";
 
   return (
     <div className="ml-8 flex flex-col gap-2">
       <div className="flex flex-wrap gap-1.5">
-        {CHIPS.map((c) => (
-          <button
-            key={c}
-            disabled={disabled}
-            onClick={() => salesAfterPreferences({ preferences: c, appendMessage, setFlow })}
-            className="text-[12px] px-2.5 py-1 rounded-full border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-primary)] disabled:opacity-60"
-          >
-            {c}
-          </button>
-        ))}
+        <button
+          disabled={disabled}
+          onClick={() =>
+            salesAfterPreferences({ preferences: CLOSEST_COMPARABLE, flow, appendMessage, setFlow })
+          }
+          className="text-[12px] px-2.5 py-1 rounded-full border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-primary)] disabled:opacity-60"
+        >
+          {CLOSEST_COMPARABLE}
+        </button>
+        <button
+          disabled={disabled}
+          onClick={() => salesAskSpecificSeats({ appendMessage, setFlow })}
+          className="text-[12px] px-2.5 py-1 rounded-full border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-primary)] disabled:opacity-60"
+        >
+          Specific seat location
+        </button>
       </div>
       {!disabled && (
         <div className="flex items-center gap-1.5">
@@ -40,6 +49,7 @@ export function PreferenceChips() {
             onClick={() =>
               salesAfterPreferences({
                 preferences: custom.trim(),
+                flow,
                 appendMessage,
                 setFlow,
               })

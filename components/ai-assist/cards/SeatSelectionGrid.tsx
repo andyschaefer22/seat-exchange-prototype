@@ -13,8 +13,14 @@ export function SeatSelectionGrid({
 }) {
   const order = ORDERS.find((o) => o.fanId === data.fanId);
   const seats = order?.lineItems.filter((li) => li.eventId === data.eventId) ?? [];
-  const [selected, setSelected] = useState<string[]>([]);
   const flow = useStore((s) => s.flow);
+  // In Sales mode, pre-select any seats already chosen (e.g. when re-editing the
+  // selection from the summary). Empty on the first pass since none are chosen yet.
+  const [selected, setSelected] = useState<string[]>(() =>
+    data.salesMode
+      ? (flow.sourceSeatIds ?? []).filter((id) => seats.some((s) => s.id === id))
+      : [],
+  );
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
   const submitted = flow.step !== "choose-seats";
@@ -29,7 +35,7 @@ export function SeatSelectionGrid({
   const onContinue = () => {
     if (selected.length === 0) return;
     if (data.salesMode) {
-      salesAfterSeats({ seatIds: selected, appendMessage, setFlow });
+      salesAfterSeats({ seatIds: selected, flow, appendMessage, setFlow });
     } else {
       pickSourceSeats({ seatIds: selected, appendMessage, setFlow });
     }

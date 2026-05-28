@@ -2,15 +2,26 @@
 
 import { useStore } from "@/lib/store";
 import { ORDERS } from "@/lib/data";
-import { pickReconciliation } from "@/lib/flows";
+import { pickReconciliation, salesPickReconciliation } from "@/lib/flows";
 import { formatCurrency } from "@/lib/utils";
 
-export function ReconciliationOptions({ data }: { data: { priceDelta: number } }) {
+export function ReconciliationOptions({
+  data,
+}: {
+  data: { priceDelta: number; salesMode?: boolean };
+}) {
   const flow = useStore((s) => s.flow);
   const appendMessage = useStore((s) => s.appendMessage);
   const setFlow = useStore((s) => s.setFlow);
-  const disabled = flow.step !== "reconciliation";
+  const disabled = data.salesMode
+    ? flow.step !== "sales-reconciliation"
+    : flow.step !== "reconciliation";
   const order = flow.fanId ? ORDERS.find((o) => o.fanId === flow.fanId) : undefined;
+
+  const choose = (option: "charge" | "reprice" | "leave-overpaid") =>
+    data.salesMode
+      ? salesPickReconciliation({ option, flow, appendMessage, setFlow })
+      : pickReconciliation({ option, appendMessage, setFlow });
 
   const isUpcharge = data.priceDelta > 0;
 
@@ -22,13 +33,13 @@ export function ReconciliationOptions({ data }: { data: { priceDelta: number } }
             disabled={disabled}
             title="Charge the fan"
             subtitle={`+${formatCurrency(data.priceDelta)} to ${order?.paymentMethods[0]?.label ?? "default card"}`}
-            onClick={() => pickReconciliation({ option: "charge", appendMessage, setFlow })}
+            onClick={() => choose("charge")}
           />
           <Option
             disabled={disabled}
             title="Reprice to match"
             subtitle="Lower new seat prices to the returned seat value"
-            onClick={() => pickReconciliation({ option: "reprice", appendMessage, setFlow })}
+            onClick={() => choose("reprice")}
           />
         </>
       )}
@@ -38,13 +49,13 @@ export function ReconciliationOptions({ data }: { data: { priceDelta: number } }
             disabled={disabled}
             title="Leave overpaid"
             subtitle={`Order ends with positive customer balance (+${formatCurrency(Math.abs(data.priceDelta))})`}
-            onClick={() => pickReconciliation({ option: "leave-overpaid", appendMessage, setFlow })}
+            onClick={() => choose("leave-overpaid")}
           />
           <Option
             disabled={disabled}
             title="Reprice to match"
             subtitle="Adjust new seat prices to match returned seat value"
-            onClick={() => pickReconciliation({ option: "reprice", appendMessage, setFlow })}
+            onClick={() => choose("reprice")}
           />
         </>
       )}

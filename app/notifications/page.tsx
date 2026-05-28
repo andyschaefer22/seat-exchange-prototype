@@ -1,10 +1,10 @@
 "use client";
 
-import { useStore } from "@/lib/store";
+import { useStore, useRoleStore } from "@/lib/store";
 import { NotificationItem } from "@/components/NotificationItem";
 
 export default function NotificationsPage() {
-  const role = useStore((s) => s.currentRole);
+  const role = useRoleStore((s) => s.currentRole);
   const notifications = useStore((s) => s.notifications);
   const list = notifications.filter((n) => n.forRole === role);
 

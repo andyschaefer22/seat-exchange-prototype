@@ -11,6 +11,7 @@ import { ReconciliationOptions } from "./cards/ReconciliationOptions";
 import { ApprovalCard } from "./cards/ApprovalCard";
 import { PreferenceChips } from "./cards/PreferenceChips";
 import { RequestSummaryCard } from "./cards/RequestSummaryCard";
+import { EditMenuCard } from "./cards/EditMenuCard";
 import { ExecutingCard } from "./cards/ExecutingCard";
 import { CompletedCard } from "./cards/CompletedCard";
 
@@ -57,21 +58,23 @@ export function MessageList() {
 function UIBlock({ kind, data }: { kind: string; data?: unknown }) {
   switch (kind) {
     case "game-cards":
-      return <GameSelectionCards data={data as { eventIds: string[]; fanId: string }} />;
+      return <GameSelectionCards data={data as { eventIds: string[]; fanId: string; salesMode?: boolean }} />;
     case "seat-grid":
       return <SeatSelectionGrid data={data as { eventId: string; fanId: string; salesMode?: boolean }} />;
     case "target-game-picker":
-      return <TargetGamePicker />;
+      return <TargetGamePicker data={data as { salesMode?: boolean } | undefined} />;
     case "block-options":
-      return <SeatBlockOptionsCards data={data as { targetEventId: string }} />;
+      return <SeatBlockOptionsCards data={data as { targetEventId: string; salesMode?: boolean }} />;
     case "reconciliation":
-      return <ReconciliationOptions data={data as { priceDelta: number }} />;
+      return <ReconciliationOptions data={data as { priceDelta: number; salesMode?: boolean }} />;
     case "approval-card":
       return <ApprovalCard />;
     case "preference-chips":
       return <PreferenceChips />;
     case "request-summary":
       return <RequestSummaryCard />;
+    case "edit-menu":
+      return <EditMenuCard />;
     case "executing":
       return <ExecutingCard />;
     case "completed":

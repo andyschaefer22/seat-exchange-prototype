@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, useRoleStore } from "@/lib/store";
 import { useToasts } from "./ToastHost";
 import { useRouter } from "next/navigation";
 
 // Watches notifications for the current role and pops a toast when new ones arrive
-// (only after the watcher mounts — so we don't spam toasts for persisted state on refresh).
+// (only after the watcher mounts).
 export function NotificationWatcher() {
-  const role = useStore((s) => s.currentRole);
+  const role = useRoleStore((s) => s.currentRole);
   const notifications = useStore((s) => s.notifications);
   const lastIds = useRef<Set<string> | null>(null);
   const pushToast = useToasts((s) => s.push);

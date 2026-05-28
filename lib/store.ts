@@ -23,6 +23,7 @@ export type Message = {
       | "limit-override"
       | "preference-chips"
       | "request-summary"
+      | "edit-menu"
       | "executing"
       | "completed";
     data?: unknown;
@@ -40,8 +41,15 @@ export type SeatExchangeFlow = {
     | "approval"
     | "executing"
     | "done"
+    | "sales-need-fan"
+    | "sales-source-game"
+    | "sales-target-game"
     | "sales-preferences"
+    | "sales-preferences-specific"
+    | "sales-block"
+    | "sales-reconciliation"
     | "sales-note"
+    | "sales-edit-menu"
     | "sales-summary";
   fanId?: string;
   sourceEventId?: string;
@@ -49,9 +57,13 @@ export type SeatExchangeFlow = {
   targetEventId?: string;
   chosenBlockId?: string;
   reconciliation?: "charge" | "reprice" | "leave-overpaid";
+  priceDelta?: number;
   preferences?: string;
   note?: string;
   reviewingNotificationId?: string;
+  // True while editing a single field from the summary — handlers return
+  // straight to the summary instead of advancing through the rest of the flow.
+  editing?: boolean;
 };
 
 export type Notification = {
@@ -71,20 +83,20 @@ export type StagedRequest = {
   requestedBy: string; // sales user name
   sourceEventId: string;
   sourceSeatIds: string[];
+  targetEventId?: string; // game the sales rep requested to exchange into
+  // The complete target selection the Sales rep made — everything Admin needs to
+  // execute without any further input.
+  targetBlock?: InventoryBlock; // the comparable seat block the Sales rep chose
+  reconciliation?: "charge" | "reprice" | "leave-overpaid"; // chosen iff price delta
+  priceDelta?: number; // delta on the chosen block (0 when prices match)
   preferences: string;
   note: string;
-  status: "pending" | "executed" | "rejected";
+  status: "pending" | "executed" | "rejected" | "cancelled";
   rejectReason?: string;
   createdAt: number;
-  // Filled in by admin during review:
-  executedTargetBlock?: InventoryBlock;
 };
 
 type StoreState = {
-  // role
-  currentRole: Role;
-  setRole: (r: Role) => void;
-
   // chat
   chatOpen: boolean;
   contextPage: { kind: "order" | "fan" | "none"; orderId?: string; fanId?: string };
@@ -98,11 +110,16 @@ type StoreState = {
   resetFlow: () => void;
   clearConversation: () => void;
 
-  // notifications & staged requests (persisted)
+  // One-shot pre-fill for the chat input (used when editing the note/fan fields).
+  draftInput: string;
+  setDraftInput: (v: string) => void;
+
+  // notifications & staged requests (in-memory only)
   notifications: Notification[];
   stagedRequests: StagedRequest[];
   addNotification: (n: Omit<Notification, "id" | "createdAt" | "read">) => Notification;
   markNotificationRead: (id: string) => void;
+  removeNotification: (id: string) => void;
   createStagedRequest: (r: Omit<StagedRequest, "id" | "createdAt" | "status">) => StagedRequest;
   updateStagedRequest: (id: string, patch: Partial<StagedRequest>) => void;
 
@@ -112,16 +129,49 @@ type StoreState = {
   applyExchange: (removedSeatIds: string[], added: LineItem[]) => void;
 };
 
-export const useStore = create<StoreState>()(
+// Purge legacy persisted blobs from earlier versions that stored the FULL app
+// state (notifications, staged requests, etc.). Without this, a browser that
+// still has the old key could appear to "survive" a refresh. Nothing reads
+// these keys anymore — this just removes the stale data.
+if (typeof window !== "undefined") {
+  try {
+    window.localStorage.removeItem("sxa-prototype-v1");
+    window.localStorage.removeItem("sxa-prototype-v2");
+  } catch {
+    // ignore
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Role store — the ONLY persisted state in the app. Isolated in its own store
+// so nothing else can accidentally be persisted. Everything in useStore below
+// is in-memory only and resets on every page refresh.
+// ---------------------------------------------------------------------------
+type RoleState = {
+  currentRole: Role;
+  setRole: (r: Role) => void;
+};
+
+export const useRoleStore = create<RoleState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       currentRole: "admin",
       setRole: (r) => {
         set({ currentRole: r });
-        // reset transient chat state when role changes
-        set({ chatOpen: false, conversation: [], flow: { step: "idle" } });
+        // Reset transient chat state in the main store when the role changes.
+        useStore.setState({ chatOpen: false, conversation: [], flow: { step: "idle" } });
       },
+    }),
+    { name: "sxa-role" },
+  ),
+);
 
+// ---------------------------------------------------------------------------
+// Main app store — NOT persisted. Notifications, staged requests, conversation,
+// flow, and line-item overrides all start empty on every load.
+// ---------------------------------------------------------------------------
+export const useStore = create<StoreState>()(
+    (set) => ({
       chatOpen: false,
       contextPage: { kind: "none" },
       conversation: [],
@@ -135,6 +185,9 @@ export const useStore = create<StoreState>()(
       resetFlow: () => set({ flow: { step: "idle" } }),
       clearConversation: () => set({ conversation: [], flow: { step: "idle" } }),
 
+      draftInput: "",
+      setDraftInput: (v) => set({ draftInput: v }),
+
       notifications: [],
       stagedRequests: [],
       addNotification: (n) => {
@@ -145,6 +198,10 @@ export const useStore = create<StoreState>()(
       markNotificationRead: (id) =>
         set((s) => ({
           notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+        })),
+      removeNotification: (id) =>
+        set((s) => ({
+          notifications: s.notifications.filter((n) => n.id !== id),
         })),
       createStagedRequest: (r) => {
         const full: StagedRequest = { ...r, id: uid("sr"), createdAt: Date.now(), status: "pending" };
@@ -168,17 +225,6 @@ export const useStore = create<StoreState>()(
           };
         }),
     }),
-    {
-      name: "sxa-prototype-v1",
-      partialize: (s) => ({
-        currentRole: s.currentRole,
-        notifications: s.notifications,
-        stagedRequests: s.stagedRequests,
-        lineItemStatusOverrides: s.lineItemStatusOverrides,
-        addedLineItems: s.addedLineItems,
-      }),
-    },
-  ),
 );
 
 export function unreadCountForRole(notifications: Notification[], role: Role): number {

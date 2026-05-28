@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@/lib/store";
+import { useStore, useRoleStore } from "@/lib/store";
 import {
   ALL_EVENTS,
   FANS_BY_ID,
@@ -22,7 +22,7 @@ export function ApprovalCard() {
   const updateStagedRequest = useStore((s) => s.updateStagedRequest);
   const addNotification = useStore((s) => s.addNotification);
   const pushToast = useToasts((s) => s.push);
-  const role = useStore((s) => s.currentRole);
+  const role = useRoleStore((s) => s.currentRole);
 
   const disabled = flow.step !== "approval";
 

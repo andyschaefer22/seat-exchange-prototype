@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { create } from "zustand";
 import { uid } from "@/lib/utils";
 
@@ -36,9 +37,9 @@ export function ToastHost() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: 40 }}
-            className="pointer-events-auto w-[340px] bg-white border border-[color:var(--color-border)] rounded-lg shadow-lg p-3"
+            className="pointer-events-auto w-[340px] bg-white border border-[color:var(--color-border)] rounded-lg shadow-lg overflow-hidden"
           >
-            <ToastBody t={t} onClose={() => dismiss(t.id)} />
+            <ToastBody t={t} dismiss={dismiss} />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -46,15 +47,61 @@ export function ToastHost() {
   );
 }
 
-function ToastBody({ t, onClose }: { t: Toast; onClose: () => void }) {
+const TOAST_DURATION = 8000;
+
+function ToastBody({ t, dismiss }: { t: Toast; dismiss: (id: string) => void }) {
+  // Stable across re-renders (e.g. when another toast is pushed) so timers for
+  // existing toasts aren't reset.
+  const onClose = useCallback(() => dismiss(t.id), [dismiss, t.id]);
+
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remainingRef = useRef(TOAST_DURATION);
+  const startRef = useRef(0);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(
+    (ms: number) => {
+      clearTimer();
+      startRef.current = Date.now();
+      timerRef.current = setTimeout(onClose, ms);
+    },
+    [clearTimer, onClose],
+  );
+
+  // Auto-dismiss fallback — runs once per toast.
   useEffect(() => {
-    const timer = setTimeout(onClose, 8000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
+    startTimer(TOAST_DURATION);
+    return clearTimer;
+  }, [startTimer, clearTimer]);
+
+  // Pause on hover, resume with the remaining time on leave.
+  const pause = () => {
+    if (timerRef.current) {
+      remainingRef.current -= Date.now() - startRef.current;
+      clearTimer();
+    }
+  };
+  const resume = () => {
+    startTimer(Math.max(0, remainingRef.current));
+  };
+
   return (
-    <div>
-      <div className="font-medium text-[13px] text-[color:var(--color-base-text)]">{t.title}</div>
-      {t.body && <div className="text-[12px] text-[color:var(--color-base-shade-300)] mt-0.5">{t.body}</div>}
+    <div className="relative p-3" onMouseEnter={pause} onMouseLeave={resume}>
+      <button
+        aria-label="Dismiss"
+        onClick={onClose}
+        className="absolute top-2 right-2 text-[color:var(--color-base-shade-300)] hover:text-[color:var(--color-base-text)]"
+      >
+        <X size={14} />
+      </button>
+      <div className="font-medium text-[13px] text-[color:var(--color-base-text)] pr-6">{t.title}</div>
+      {t.body && <div className="text-[12px] text-[color:var(--color-base-shade-300)] mt-0.5 pr-6">{t.body}</div>}
       {t.action && (
         <button
           onClick={() => {

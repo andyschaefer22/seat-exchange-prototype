@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@/lib/store";
+import { useRoleStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -12,8 +12,8 @@ export function Header() {
 }
 
 function RoleToggle() {
-  const role = useStore((s) => s.currentRole);
-  const setRole = useStore((s) => s.setRole);
+  const role = useRoleStore((s) => s.currentRole);
+  const setRole = useRoleStore((s) => s.setRole);
   return (
     <div className="inline-flex items-center bg-[#f1f3f6] rounded-full p-0.5 text-[12.5px]">
       <button

@@ -19,7 +19,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
-import { useStore, unreadCountForRole } from "@/lib/store";
+import { useStore, useRoleStore, unreadCountForRole } from "@/lib/store";
 import { USERS } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(true);
   const pathname = usePathname();
-  const role = useStore((s) => s.currentRole);
+  const role = useRoleStore((s) => s.currentRole);
   const notifications = useStore((s) => s.notifications);
   const unread = unreadCountForRole(notifications, role);
 
