@@ -1,0 +1,25 @@
+lib/flows.ts
+  dac53d321a87430e 464-494
+components/ai-assist/ChatPanel.tsx
+  dac53d321a87430e 12,123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "0b88dbdbdcc57663b2ed855ed57d2371ed35c188",
+  "prompts": {
+    "dac53d321a87430e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85abc469-2145-4d14-b71f-bbc8616621a8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Andy Schaefer",
+      "messages": [],
+      "total_additions": 690,
+      "total_deletions": 5,
+      "accepted_lines": 687,
+      "overriden_lines": 0
+    }
+  }
+}
