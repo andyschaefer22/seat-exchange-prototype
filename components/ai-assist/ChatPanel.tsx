@@ -9,6 +9,7 @@ import {
   adminGreet,
   salesGreet,
   startAdminExchange,
+  startSalesExchange,
   startSalesIntake,
   salesProvideFan,
   salesAddComment,
@@ -119,8 +120,7 @@ export function ChatPanel() {
       if (!fanIdForContext) return;
       startAdminExchange({ fanId: fanIdForContext, appendMessage, setFlow });
     } else if (action === "Request seat exchange") {
-      const exampleFan = fanIdForContext ? FANS_BY_ID[fanIdForContext]?.name.split(" ")[0] : "the fan";
-      setInput(`${exampleFan} wants to exchange seats`);
+      startSalesExchange({ fanId: fanIdForContext, appendMessage, setFlow });
     }
   };
 

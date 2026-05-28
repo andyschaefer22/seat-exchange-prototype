@@ -461,6 +461,37 @@ export function salesAdvance(
   showSalesSummary(appendMessage, setFlow);
 }
 
+// Kicks off the Sales flow from the "Exchange Seats" quick action — no text
+// prompt. Seeds the fan from page context (if known) and advances straight to
+// the first unanswered step.
+export function startSalesExchange({
+  fanId,
+  appendMessage,
+  setFlow,
+}: {
+  fanId?: string;
+  appendMessage: AppendMessage;
+  setFlow: SetFlow;
+}) {
+  appendMessage({ role: "user", text: "Exchange Seats" });
+  // Fresh start: clear any stale fields, seed the fan from page context.
+  setFlow({
+    step: "idle",
+    fanId,
+    sourceEventId: undefined,
+    sourceSeatIds: undefined,
+    targetEventId: undefined,
+    chosenBlockId: undefined,
+    reconciliation: undefined,
+    priceDelta: undefined,
+    preferences: undefined,
+    note: undefined,
+    editing: false,
+    reviewingNotificationId: undefined,
+  });
+  salesAdvance({ fanId }, appendMessage, setFlow);
+}
+
 export function startSalesIntake({
   userText,
   appendMessage,
