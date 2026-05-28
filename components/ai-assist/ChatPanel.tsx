@@ -11,8 +11,7 @@ import {
   startAdminExchange,
   startSalesIntake,
   salesProvideFan,
-  salesAfterNote,
-  salesSkipNote,
+  salesAddComment,
   salesAfterPreferences,
 } from "@/lib/flows";
 import { MessageList } from "./MessageList";
@@ -30,14 +29,24 @@ export function ChatPanel() {
   const setDraftInput = useStore((s) => s.setDraftInput);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Consume a one-shot pre-fill (e.g. when editing the note/fan from the summary).
+  // The chat input is disabled at the note step (Submit / Add Comments buttons
+  // drive it) and re-enabled while the user is composing a comment.
+  const inputDisabled = role === "sales" && flow.step === "sales-note";
+
+  // Consume a one-shot pre-fill (e.g. when editing the fan from the summary).
   useEffect(() => {
     if (draftInput) {
       setInput(draftInput);
       setDraftInput("");
     }
   }, [draftInput, setDraftInput]);
+
+  // Focus the input when the user opts to add a comment.
+  useEffect(() => {
+    if (flow.step === "sales-note-comment") inputRef.current?.focus();
+  }, [flow.step]);
 
   // Greet on open if empty
   useEffect(() => {
@@ -82,8 +91,8 @@ export function ChatPanel() {
     if (role === "sales") {
       if (flow.step === "sales-need-fan") {
         salesProvideFan({ userText: text, flow, appendMessage, setFlow });
-      } else if (flow.step === "sales-note") {
-        salesAfterNote({ note: text, flow, appendMessage, setFlow });
+      } else if (flow.step === "sales-note-comment") {
+        salesAddComment({ text, flow, appendMessage, setFlow });
       } else if (flow.step === "sales-preferences" || flow.step === "sales-preferences-specific") {
         salesAfterPreferences({ preferences: text, flow, appendMessage, setFlow });
       } else if (flow.step === "idle" || flow.step === "done") {
@@ -173,7 +182,9 @@ export function ChatPanel() {
           <div className="border-t border-[color:var(--color-border)] p-3">
             <div className="flex items-end gap-2">
               <textarea
+                ref={inputRef}
                 value={input}
+                disabled={inputDisabled}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -185,29 +196,25 @@ export function ChatPanel() {
                 placeholder={
                   role !== "sales"
                     ? "Ask anything..."
-                    : flow.step === "sales-preferences-specific"
-                      ? "e.g., Section 101, Row 1, Seats 1-2"
-                      : "Describe what you need (e.g., \"Andy wants to exchange Cavs seats for Hawks\")"
+                    : flow.step === "sales-note"
+                      ? "Use the buttons above"
+                      : flow.step === "sales-note-comment"
+                        ? "Add a comment for Ticket Ops..."
+                        : flow.step === "sales-preferences-specific"
+                          ? "e.g., Section 101, Row 1, Seats 1-2"
+                          : "Describe what you need (e.g., \"Andy wants to exchange Cavs seats for Hawks\")"
                 }
-                className="flex-1 resize-none border border-[color:var(--color-border)] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[color:var(--color-primary)]"
+                className="flex-1 resize-none border border-[color:var(--color-border)] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[color:var(--color-primary)] disabled:bg-[#f1f3f6] disabled:text-[color:var(--color-base-shade-300)] disabled:cursor-not-allowed"
               />
               <button
                 onClick={onSend}
-                disabled={!input.trim()}
+                disabled={inputDisabled || !input.trim()}
                 className="w-9 h-9 rounded-md bg-[color:var(--color-primary)] text-white grid place-items-center hover:bg-[color:var(--color-primary-dark)] disabled:opacity-40"
                 aria-label="Send"
               >
                 <Send size={14} />
               </button>
             </div>
-            {role === "sales" && flow.step === "sales-note" && (
-              <button
-                onClick={() => salesSkipNote({ flow, appendMessage, setFlow })}
-                className="mt-2 text-[12px] text-[color:var(--color-base-shade-300)] hover:text-[color:var(--color-base-text)] underline"
-              >
-                Skip
-              </button>
-            )}
           </div>
         </motion.div>
       )}

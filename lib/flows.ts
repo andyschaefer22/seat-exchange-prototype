@@ -446,11 +446,12 @@ export function salesAdvance(
     return;
   }
 
-  // 8. Optional note for Ticket Ops
+  // 8. Optional note for Ticket Ops — Submit / Add Comments buttons.
   if (known.note === undefined) {
     appendMessage({
       role: "assistant",
       text: "Any context to share with Ticket Ops? (optional)",
+      ui: { kind: "note-actions" },
     });
     setFlow({ step: "sales-note" });
     return;
@@ -702,47 +703,59 @@ export function salesPickReconciliation({
   salesAdvance(known, appendMessage, setFlow);
 }
 
-export function salesAfterNote({
-  note,
+// "Submit" on the note step — proceed straight to the request summary. A note
+// left empty stays undefined and renders as "—".
+export function salesSubmitNote({
   flow,
   appendMessage,
   setFlow,
 }: {
-  note: string;
   flow: SeatExchangeFlow;
   appendMessage: AppendMessage;
   setFlow: SetFlow;
 }) {
-  appendMessage({ role: "user", text: note || "(no additional context)" });
-  setFlow({ note });
-  if (flow.editing) {
-    showSalesSummary(appendMessage, setFlow, { edited: true });
-    return;
-  }
-  const known = salesKnownFromFlow(flow);
-  known.note = note;
-  salesAdvance(known, appendMessage, setFlow);
+  appendMessage({ role: "user", text: "Submit" });
+  showSalesSummary(appendMessage, setFlow, { edited: !!flow.editing });
 }
 
-export function salesSkipNote({
+// "Add Comments" on the note step — re-enable the chat input for a comment.
+export function salesStartComment({
+  appendMessage,
+  setFlow,
+}: {
+  appendMessage: AppendMessage;
+  setFlow: SetFlow;
+}) {
+  appendMessage({ role: "user", text: "Add Comments" });
+  appendMessage({
+    role: "assistant",
+    text: "Type your comment below and press Enter.",
+  });
+  setFlow({ step: "sales-note-comment" });
+}
+
+// A submitted comment — appended to the note (multiple comments joined by line
+// breaks) — then re-present the Submit / Add Comments buttons.
+export function salesAddComment({
+  text,
   flow,
   appendMessage,
   setFlow,
 }: {
+  text: string;
   flow: SeatExchangeFlow;
   appendMessage: AppendMessage;
   setFlow: SetFlow;
 }) {
-  appendMessage({ role: "user", text: "Skipped" });
-  // Capture an empty note so the summary renders "—" rather than placeholder text.
-  setFlow({ note: "" });
-  if (flow.editing) {
-    showSalesSummary(appendMessage, setFlow, { edited: true });
-    return;
-  }
-  const known = salesKnownFromFlow(flow);
-  known.note = "";
-  salesAdvance(known, appendMessage, setFlow);
+  appendMessage({ role: "user", text });
+  const note = flow.note ? `${flow.note}\n${text}` : text;
+  setFlow({ note });
+  appendMessage({
+    role: "assistant",
+    text: "Comment added. Add more, or submit the request.",
+    ui: { kind: "note-actions" },
+  });
+  setFlow({ step: "sales-note" });
 }
 
 export function salesSendRequest({
@@ -821,9 +834,9 @@ export function salesEditField({
       appendMessage({
         role: "assistant",
         text: "Any context to share with Ticket Ops? (optional)",
+        ui: { kind: "note-actions" },
       });
       setFlow({ step: "sales-note", editing: true });
-      setDraftInput(flow.note ?? "");
       return;
     }
     case "preferences": {

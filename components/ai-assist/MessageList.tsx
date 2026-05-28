@@ -12,6 +12,7 @@ import { ApprovalCard } from "./cards/ApprovalCard";
 import { PreferenceChips } from "./cards/PreferenceChips";
 import { RequestSummaryCard } from "./cards/RequestSummaryCard";
 import { EditMenuCard } from "./cards/EditMenuCard";
+import { NoteActionsCard } from "./cards/NoteActionsCard";
 import { ExecutingCard } from "./cards/ExecutingCard";
 import { CompletedCard } from "./cards/CompletedCard";
 
@@ -75,6 +76,8 @@ function UIBlock({ kind, data }: { kind: string; data?: unknown }) {
       return <RequestSummaryCard />;
     case "edit-menu":
       return <EditMenuCard />;
+    case "note-actions":
+      return <NoteActionsCard />;
     case "executing":
       return <ExecutingCard />;
     case "completed":

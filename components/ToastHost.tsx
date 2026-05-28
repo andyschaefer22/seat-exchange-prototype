@@ -100,19 +100,24 @@ function ToastBody({ t, dismiss }: { t: Toast; dismiss: (id: string) => void }) 
       >
         <X size={14} />
       </button>
-      <div className="font-medium text-[13px] text-[color:var(--color-base-text)] pr-6">{t.title}</div>
+      <div className="font-medium text-[13px] text-[color:var(--color-base-text)] pr-6">
+        {t.title}
+        {t.action && (
+          <>
+            <span className="text-[color:var(--color-base-shade-300)]"> · </span>
+            <button
+              onClick={() => {
+                t.action!.onClick();
+                onClose();
+              }}
+              className="font-semibold text-[color:var(--color-primary)] hover:underline"
+            >
+              {t.action.label}
+            </button>
+          </>
+        )}
+      </div>
       {t.body && <div className="text-[12px] text-[color:var(--color-base-shade-300)] mt-0.5 pr-6">{t.body}</div>}
-      {t.action && (
-        <button
-          onClick={() => {
-            t.action!.onClick();
-            onClose();
-          }}
-          className="mt-2 text-[12px] font-semibold text-[color:var(--color-primary)] hover:underline"
-        >
-          {t.action.label} →
-        </button>
-      )}
     </div>
   );
 }

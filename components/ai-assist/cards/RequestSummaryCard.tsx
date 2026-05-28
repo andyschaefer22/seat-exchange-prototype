@@ -9,6 +9,7 @@ import {
   USERS,
   formatEventDateTime,
 } from "@/lib/data";
+import { useRouter } from "next/navigation";
 import { salesSendRequest, openSalesEditMenu, salesResolveBlock } from "@/lib/flows";
 import { formatCurrency } from "@/lib/utils";
 import { useToasts } from "@/components/ToastHost";
@@ -21,6 +22,7 @@ export function RequestSummaryCard() {
   const addNotification = useStore((s) => s.addNotification);
   const clearConversation = useStore((s) => s.clearConversation);
   const pushToast = useToasts((s) => s.push);
+  const router = useRouter();
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   if (!flow.fanId || !flow.sourceEventId) return null;
@@ -75,7 +77,10 @@ export function RequestSummaryCard() {
       body: `Pending review by Ticket Ops.`,
       stagedRequestId: sr.id,
     });
-    pushToast({ title: "Request sent to Ticket Ops" });
+    pushToast({
+      title: "Request sent to Ticket Ops",
+      action: { label: "View in Notifications", onClick: () => router.push("/notifications") },
+    });
     salesSendRequest({ appendMessage, setFlow });
   };
 

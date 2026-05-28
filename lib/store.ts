@@ -24,6 +24,7 @@ export type Message = {
       | "preference-chips"
       | "request-summary"
       | "edit-menu"
+      | "note-actions"
       | "executing"
       | "completed";
     data?: unknown;
@@ -49,6 +50,7 @@ export type SeatExchangeFlow = {
     | "sales-block"
     | "sales-reconciliation"
     | "sales-note"
+    | "sales-note-comment"
     | "sales-edit-menu"
     | "sales-summary";
   fanId?: string;
